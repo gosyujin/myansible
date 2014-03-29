@@ -1,0 +1,44 @@
+# roles/intra/tasks/main.yml
+---
+- name: Touch files
+  file: name={{ item }}
+        state=touch
+  with_items:
+    - /etc/gemrc
+    - /etc/gitconfig
+    - /etc/profile.d/proxy.sh
+
+- name: Set intra DNS and restart network
+  lineinfile: dest=/etc/sysconfig/network-scripts/ifcfg-eth0
+              backup=yes
+              {{ item }}
+  with_items:
+    - line='DNS1={{ dns }}'
+  notify: restart network
+  tags: dns
+- name: Set yum proxy
+  lineinfile: dest=/etc/yum.conf
+              backup=yes
+              {{ item }}
+  with_items:
+    - line='proxy={{ http_proxy }}'
+  tags: proxy
+- name: Set gem proxy
+  lineinfile: dest=/etc/gemrc
+              backup=yes
+              {{ item }}
+  with_items:
+    - line="http_proxy:{{ http_proxy }}"
+  tags: proxy
+- name: Set shell proxy
+  lineinfile: dest=/etc/profile.d/proxy.sh
+              {{ item }}
+  with_items:
+    - line="export http_proxy={{ http_proxy }}"
+    - line="export https_proxy={{ https_proxy }}"
+  tags: proxy
+- name: Set git proxy
+  shell: >
+        git config --system http.proxy {{ http_proxy }} ;
+        git config --system https.proxy {{ https_proxy }}
+  tags: proxy

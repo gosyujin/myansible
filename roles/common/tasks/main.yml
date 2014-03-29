@@ -1,0 +1,26 @@
+---
+- name: Yum install
+  yum: name={{ item }} state=installed
+  with_items:
+    - vim
+    - gcc
+    - git
+    - sqlite
+    - sqlite-devel
+    - zlib-devel
+    - openssl-devel
+  tags: yum
+
+- name: Create user
+  user: name={{ item }}
+        group=vagrant
+        shell=/bin/bash
+  with_items:
+    - kk_Ataka
+  tags: user
+- name: Transfer host public key -> authorized_key
+  authorized_key: user=kk_Ataka
+                  key="{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+  with_items:
+    - kk_Ataka
+  tags: user

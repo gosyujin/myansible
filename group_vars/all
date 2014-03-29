@@ -1,0 +1,5 @@
+# group_vars/all
+rbenv_home: ~/.rbenv
+rbenv_bin: "{{ rbenv_home }}/bin"
+my_repo_home: ~/github
+global_ruby_version: 2.1.0

@@ -1,0 +1,5 @@
+# site.yml
+---
+#- include: intra.yml
+- include: common.yml
+- include: home.yml

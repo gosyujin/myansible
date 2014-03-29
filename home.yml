@@ -1,0 +1,6 @@
+# home.yml
+---
+- hosts: all
+  user: kk_Ataka
+  roles:
+    - home
