@@ -34,5 +34,5 @@
        dest={{ my_repo_home }}/dotfiles
   tags: dotfiles
 - name: Source my dotfiles
-  shell: "cd {{ my_repo_home}}/dotfiles ; sh replace.sh"
+  shell: "cd {{ my_repo_home}}/dotfiles ; sh replace.sh -n"
   tags: dotfiles
