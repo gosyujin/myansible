@@ -1,5 +1,5 @@
 ---
-- host: all
+- hosts: all
   sudo: yes
   roles:
     - intra
