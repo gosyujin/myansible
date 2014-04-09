@@ -12,7 +12,8 @@
               backup=yes
               {{ item }}
   with_items:
-    - line='DNS1={{ dns }}'
+    - regexp='^DNS1'
+      line='DNS1={{ dns }}'
   notify: restart network
   tags: dns
 - name: Set yum proxy

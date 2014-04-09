@@ -1,4 +1,10 @@
 ---
+- name: Yum check
+  shell: "yum search ntpd"
+  register: status
+  failed_when: status.rc not in [0]
+  ignore_errors: False
+  tags: yum
 - name: Yum install
   yum: name={{ item }} state=installed
   with_items:
@@ -11,10 +17,16 @@
     - openssl-devel
   tags: yum
 
+- name: Create group
+  group: name=mygroup
+  tags: users
+# password: ansible
+# # $ python -c 'import crypt; print crypt.crypt("ansible", "$1$SomeSalt$")'
 - name: Create user
   user: name={{ item }}
-        group=vagrant
+        groups=mygroup,wheel
         shell=/bin/bash
+        password=$1$SomeSalt$LRZdP3TwZZZ/q8adbdC0g0
   with_items:
     - kk_Ataka
   tags: user
@@ -23,4 +35,67 @@
                   key="{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
   with_items:
     - kk_Ataka
-  tags: user
+  tags: users
+
+#- name: Modify sudo user and su
+#  lineinfile: dest=/etc/sudoers
+#              backup=yes
+#              {{ item }}
+#  with_items:
+#    - regexp='^%wheel'
+#      line='%wheel      ALL=(ALL)       ALL'
+#  notify: restart sshd
+#  tags: sudo
+#
+#- name: Modify sudo user and su
+#  lineinfile: dest=/etc/pam.d/su
+#              backup=yes
+#              {{ item }}
+#  with_items:
+#    - regexp='*pam_wheel.so use_uid*'
+#      line='auth    required        pam_wheel.so use_uid'
+#  notify: restart sshd
+#  tags: sudo
+
+- name: Modify sshd_config
+  lineinfile: dest=/etc/ssh/sshd_config
+              backup=yes
+              {{ item }}
+  with_items:
+    # Port の変更
+    - regexp='^Port'
+      line='Port 20022' insertafter='#Port'
+    # 公開鍵ログインを許可する
+    - regexp='^PubkeyAuthentication'
+      line='PubkeyAuthentication yes' insertafter='#PubkeyAuthentication'
+    # rootログインを許可しない
+    - regexp='^PermitRootLogin'
+      line='PermitRootLogin no' insertafter='#PermitRootLogin'
+    # パスワードログインを許可しない
+    - regexp='^PasswordAuthentication'
+      line='PasswordAuthentication no' insertafter='#PasswordAuthentication'
+    # GSSAPI ベースのユーザ認証を許可しない
+    - regexp='^GSSAPIAuthentication'
+      line='GSSAPIAuthentication no' insertafter='#GSSAPIAuthentication'
+    # チャレンジレスポンス認証を許可しない
+    - regexp='^ChallengeResponseAuthentication'
+      line='ChallengeResponseAuthentication no' insertafter='#ChallengeResponseAuthentication'
+  notify: restart sshd
+  tags: sshd
+
+- name: Modify host deny(nothing to do)
+  lineinfile: dest=/etc/hosts.deny
+              backup=yes
+              {{ item }}
+  with_items:
+    - regexp='^ALL' line=''
+  notify: restart sshd
+  tags: hosts
+- name: Modify host allow(nothing to do)
+  lineinfile: dest=/etc/hosts.allow
+              backup=yes
+              {{ item }}
+  with_items:
+    - regexp='^ALL' line=''
+  notify: restart sshd
+  tags: hosts
