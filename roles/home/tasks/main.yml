@@ -1,34 +1,37 @@
 ---
+# rbenv
 - name: Check rbenv
+  tags: rbenv
   shell: "{{ rbenv_bin }}/rbenv --version"
   register: status
   failed_when: status.rc not in [0]
   ignore_errors: True
-  tags: rbenv
 - name: Install rbenv
+  tags: rbenv
   git: repo=https://github.com/sstephenson/rbenv.git
        dest={{ rbenv_home }}
   when: status.rc != 0
-  tags: rbenv
 - name: Set environment variable  
+  tags: rbenv
   lineinfile: dest=~/.bash_profile
               line='export PATH="$HOME/.rbenv/bin:$PATH" ; eval "$(rbenv init -)"'
   when: status.rc != 0
-  tags: rbenv
 - name: Install rbenv ruby-build
+  tags: rbenv
   git: repo=https://github.com/sstephenson/ruby-build.git
        dest="{{ rbenv_home }}/plugins/ruby-build"
   when: status.rc != 0
-  tags: rbenv
 - name: Install Ruby and set global
+  tags: rbenv
   shell: "{{ rbenv_bin }}/rbenv install -v {{ global_ruby_version }} ; {{ rbenv_bin }}/rbenv global {{ global_ruby_version }}"
   when: status.rc != 0
-  tags: rbenv
 
+# gems
 - name: Install Bundler
   shell: "{{ rbenv_home }}/versions/{{ global_ruby_version }}/bin/gem install bundler"
   tags: gems
 
+# dotfiles
 - name: Install my dotfiles
   git: repo=https://github.com/gosyujin/dotfiles.git
        dest={{ my_repo_home }}/dotfiles

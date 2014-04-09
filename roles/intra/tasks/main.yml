@@ -7,7 +7,9 @@
     - /etc/gitconfig
     - /etc/profile.d/proxy.sh
 
+# dns
 - name: Set intra DNS and restart network
+  tags: dns
   lineinfile: dest=/etc/sysconfig/network-scripts/ifcfg-eth0
               backup=yes
               {{ item }}
@@ -15,30 +17,31 @@
     - regexp='^DNS1'
       line='DNS1={{ dns }}'
   notify: restart network
-  tags: dns
+
+# proxy
 - name: Set yum proxy
+  tags: proxy
   lineinfile: dest=/etc/yum.conf
               backup=yes
               {{ item }}
   with_items:
     - line='proxy={{ http_proxy }}'
-  tags: proxy
 - name: Set gem proxy
+  tags: proxy
   lineinfile: dest=/etc/gemrc
               backup=yes
               {{ item }}
   with_items:
     - line="http_proxy:{{ http_proxy }}"
-  tags: proxy
 - name: Set shell proxy
+  tags: proxy
   lineinfile: dest=/etc/profile.d/proxy.sh
               {{ item }}
   with_items:
     - line="export http_proxy={{ http_proxy }}"
     - line="export https_proxy={{ https_proxy }}"
-  tags: proxy
 - name: Set git proxy
+  tags: proxy
   shell: >
         git config --system http.proxy {{ http_proxy }} ;
         git config --system https.proxy {{ https_proxy }}
-  tags: proxy

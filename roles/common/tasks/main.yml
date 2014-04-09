@@ -1,11 +1,13 @@
 ---
+# yum
 - name: Yum check
+  tags: yum
   shell: "yum search ntpd"
   register: status
   failed_when: status.rc not in [0]
   ignore_errors: False
-  tags: yum
 - name: Yum install
+  tags: yum
   yum: name={{ item }} state=installed
   with_items:
     - vim
@@ -15,28 +17,29 @@
     - sqlite-devel
     - zlib-devel
     - openssl-devel
-  tags: yum
 
+# users
 - name: Create group
-  group: name=mygroup
   tags: users
+  group: name=mygroup
 # password: ansible
 # # $ python -c 'import crypt; print crypt.crypt("ansible", "$1$SomeSalt$")'
 - name: Create user
+  tags: users
   user: name={{ item }}
         groups=mygroup,wheel
         shell=/bin/bash
         password=$1$SomeSalt$LRZdP3TwZZZ/q8adbdC0g0
   with_items:
     - kk_Ataka
-  tags: user
 - name: Transfer host public key -> authorized_key
+  tags: users
   authorized_key: user=kk_Ataka
                   key="{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
   with_items:
     - kk_Ataka
-  tags: users
 
+# sudo
 #- name: Modify sudo user and su
 #  lineinfile: dest=/etc/sudoers
 #              backup=yes
@@ -57,7 +60,9 @@
 #  notify: restart sshd
 #  tags: sudo
 
+# sshd
 - name: Modify sshd_config
+  tags: sshd
   lineinfile: dest=/etc/ssh/sshd_config
               backup=yes
               {{ item }}
@@ -81,21 +86,21 @@
     - regexp='^ChallengeResponseAuthentication'
       line='ChallengeResponseAuthentication no' insertafter='#ChallengeResponseAuthentication'
   notify: restart sshd
-  tags: sshd
 
+# hosts
 - name: Modify host deny(nothing to do)
+  tags: hosts
   lineinfile: dest=/etc/hosts.deny
               backup=yes
               {{ item }}
   with_items:
     - regexp='^ALL' line=''
   notify: restart sshd
-  tags: hosts
 - name: Modify host allow(nothing to do)
+  tags: hosts
   lineinfile: dest=/etc/hosts.allow
               backup=yes
               {{ item }}
   with_items:
     - regexp='^ALL' line=''
   notify: restart sshd
-  tags: hosts
