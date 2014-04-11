@@ -1,5 +1,6 @@
 ---
 - name: Touch files
+  tags: proxy
   file: name={{ item }}
         state=touch
   with_items:
