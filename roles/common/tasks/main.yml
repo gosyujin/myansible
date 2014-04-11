@@ -34,6 +34,7 @@
     - kk_Ataka
 - name: Transfer host public key -> authorized_key
   tags: users
+  ignore_errors: True
   authorized_key: user=kk_Ataka
                   key="{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
   with_items:
