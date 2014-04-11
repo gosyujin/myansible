@@ -32,13 +32,12 @@
         password=$1$SomeSalt$LRZdP3TwZZZ/q8adbdC0g0
   with_items:
     - kk_Ataka
-- name: Transfer host public key -> authorized_key
-  tags: users
-  ignore_errors: True
-  authorized_key: user=kk_Ataka
-                  key="{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
-  with_items:
-    - kk_Ataka
+#- name: Transfer host public key -> authorized_key
+#  tags: users
+#  authorized_key: user=kk_Ataka
+#                  key="{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+#  with_items:
+#    - kk_Ataka
 
 # sudo
 #- name: Modify sudo user and su
