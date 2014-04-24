@@ -1,5 +1,11 @@
 # group_vars/all
 rbenv_home: ~/.rbenv
 rbenv_bin: "{{ rbenv_home }}/bin"
-my_repo_home: ~/github
 global_ruby_version: 2.1.0
+
+pyenv_home: ~/.pyenv
+pyenv_bin: "{{ pyenv_home }}/bin"
+python2: 2.7.3
+python3: 3.4.0
+
+my_repo_home: ~/github

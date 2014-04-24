@@ -14,7 +14,11 @@
 - name: Set environment variable  
   tags: rbenv
   lineinfile: dest=~/.bash_profile
-              line='export PATH="$HOME/.rbenv/bin:$PATH" ; eval "$(rbenv init -)"'
+              {{ item }}
+  with_items:
+    - line='# rbenv'
+    - line='export PATH="$HOME/.rbenv/bin:$PATH"'
+    - line='eval "$(rbenv init -)"'
   when: status.rc != 0
 - name: Install rbenv ruby-build
   tags: rbenv
@@ -30,6 +34,27 @@
 - name: Install Bundler
   shell: "{{ rbenv_home }}/versions/{{ global_ruby_version }}/bin/gem install bundler"
   tags: gems
+
+# pyenv
+- name: Install pyenv
+  tags: pyenv
+  git: repo=https://github.com/yyuu/pyenv.git
+       dest={{ pyenv_home }}
+- name: Set environment variable
+  tags: pyenv
+  lineinfile: dest=~/.bash_profile
+              {{ item }}
+  with_items:
+    - line='# pyenv'
+    - line='export PATH="$HOME/.pyenv/bin:$PATH"'
+    - line='eval "$(pyenv init -)"'
+- name: Install pyenv-virtualenv
+  tags: pyenv
+  git: repo=https://github.com/yyuu/pyenv-virtualenv.git
+       dest={{ pyenv_home }}/plugins/pyenv-virtualenv
+- name: Install Python and set global
+  tags: pyenv
+  shell: "{{ pyenv_bin }}/pyenv install {{ python2 }} ; {{ pyenv_bin }}/pyenv install {{ python3 }} ; {{ pyenv_bin }}/pyenv global {{ python2 }}"
 
 # dotfiles
 - name: Install my dotfiles
