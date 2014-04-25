@@ -33,7 +33,7 @@
   with_items:
     - kk_Ataka
 - name: Transfer host public key -> authorized_key
-  tags: users
+  tags: keys
   authorized_key: user=kk_Ataka
                   key="{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
   with_items:
