@@ -1,0 +1,4 @@
+- hosts: conoha_root
+  user: root
+  roles:
+    - ssh

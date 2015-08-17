@@ -1,0 +1,54 @@
+# 必要なツール等をインストールする
+---
+# yum更新
+- name      : Yum更新
+  tags      : yum
+  yum       : name="{{ item }}" state=installed
+  with_items:
+    - vim
+    - gcc
+    - ruby
+    - python
+    - git
+    - sqlite
+    - sqlite-devel
+    - zlib-devel
+    - openssl-devel
+
+# こっからsudoするしないで分ける
+
+# GitHubに公開鍵を登録
+# TODO 既にGitHubに公開鍵があるかチェック入れる
+- name      : A.ホスト名を取得(鍵のタイトルに使う)
+  tags      : github
+  command   : hostname
+  sudo      : no
+  register  : myhost
+- name      : B.公開鍵情報を取得
+  tags      : github
+  sudo      : no
+  command   : cat ~/.ssh/id_rsa.pub
+  register  : ssh_pubkey
+- name      : title:A, key:B として公開鍵をGitHubに登録
+  tags      : github
+  sudo      : no
+  shell     : curl -u "{{ github_account }}":"{{ github_password }}" \
+                   -d '{"title":"{{myhost.stdout}}", "key":"{{ssh_pubkey.stdout}}"}' \
+              https://api.github.com/user/keys
+
+# 必要なリポジトリをクローン
+- name      : GitHubからクローン
+  tags      : myrepository
+  sudo      : no
+  git:
+    repo: "{{ item.repo }}"
+    dest: "{{ item.dest }}"
+  with_items:
+    - repo: git@github.com:{{ github_account }}/{{ github_account }}.github.io.git
+      dest: ./{{ github_account }}.github.io
+    - repo: git@github.com:{{ github_account }}/life
+      dest: ./life
+    - repo: git@github.com:{{ github_account }}/dotfiles
+      dest: ./github/dotfiles
+
+# TODO Bitbucketにも鍵登録する

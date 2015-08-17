@@ -1,0 +1,12 @@
+- hosts: conoha
+  user: kk_Ataka
+  sudo: yes
+  vars_prompt:
+    - name   : "github_account"
+      prompt : "Enter GitHub account"
+      private: no
+      default: "gosyujin"
+    - name   : "github_password"
+      prompt : "Enter GitHub password"
+  roles:
+    - initialize

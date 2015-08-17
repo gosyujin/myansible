@@ -1,0 +1,5 @@
+ssh_port: 20022
+ssh_user: kk_Ataka
+# python -c 'import crypt; print crypt.crypt("ansible", "$1$SomeSalt$")'
+ssh_password: $1$SomeSalt$LRZdP3TwZZZ/q8adbdC0g0
+

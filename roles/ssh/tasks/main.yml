@@ -1,0 +1,53 @@
+# 初期設定を行う。root@host:22でSSH接続し、ログイン設定などを変更する
+---
+- name: wheelグループsudo可能にする
+  lineinfile:
+    dest     : /etc/sudoers
+    state    : present
+    backup   : yes
+    backrefs : yes
+    validate : 'visudo -cf %s'
+    regexp   : "{{ item.regexp }}"
+    line     : "{{ item.line }}"
+  with_items:
+    # wheelグループ
+    - regexp : "^# %wheel.*NOPASSWD"
+      line   : "%wheel ALL=(ALL) NOPASSWD: ALL"
+- name: ユーザ追加
+  user:
+    name             : "{{ ssh_user }}"
+    password         : "{{ ssh_password }}"
+    generate_ssh_key : yes
+    ssh_key_bits     : 2048
+    group            : wheel
+    shell            : /bin/bash
+- name: ~/.ssh/id_rsa.pub -> authorized_key
+  authorized_key:
+    user : "{{ ssh_user }}"
+    key  : "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+- name: sshd_config設定変更
+  lineinfile:
+    dest     : /etc/ssh/sshd_config
+    state    : present
+    backup   : yes
+    backrefs : yes
+    regexp   : "{{ item.regexp }}"
+    line     : "{{ item.line }}"
+  with_items:
+    # SSHポートを変更
+    - regexp : "^#Port"
+      line   : "Port {{ ssh_port }}"
+    # パスワードでのSSHログインを禁止する
+    - regexp : "^PasswordAuthentication"
+      line   : "PasswordAuthentication no"
+    # 公開鍵ログインを許可する
+    - regexp : "^#PubkeyAuthentication"
+      line   : "PubkeyAuthentication yes"
+    # rootログインを許可しない
+    - regexp : "^PermitRootLogin"
+      line   : "PermitRootLogin no"
+    # GSSAPI ベースのユーザ認証を許可しない
+    - regexp : "^GSSAPIAuthentication"
+      line   : "GSSAPIAuthentication no"
+  notify:
+    - restart_sshd
