@@ -1,6 +1,5 @@
-- hosts: conoha
+- hosts: sakura
   user: kk_Ataka
-  sudo: yes
   vars_prompt:
     - name   : "github_account"
       prompt : "Enter GitHub account"
@@ -8,5 +7,8 @@
       default: "gosyujin"
     - name   : "github_password"
       prompt : "Enter GitHub password"
+    - name   : "mackerel_apikey"
+      prompt : "Enter Mackerel API key"
+      private: no
   roles:
     - initialize

@@ -1,4 +1,4 @@
-- hosts: conoha_root
+- hosts: sakura_root
   user: root
   roles:
     - ssh

@@ -1,54 +1,98 @@
 # 必要なツール等をインストールする
 ---
-# yum更新
-- name      : Yum更新
+- name : Mackerel yumリポジトリ更新
+  tags : mackerel
+  sudo : yes
+  shell: curl -fsSL https://mackerel.io/assets/files/scripts/setup-yum.sh | sh
+- name      : Mackerel Yumインストール
+  tags      : mackerel
+  sudo      : yes
+  yum       : name="{{ item }}" state=installed
+  with_items:
+    - mackerel-agent
+- name      : Mackerel agent.confにAPI key追加
+  tags      : mackerel
+  sudo      : yes
+  lineinfile:
+    dest    : /etc/mackerel-agent/mackerel-agent.conf
+    state   : present
+    backup  : yes
+    backrefs: yes
+    regexp  : "^# apikey"
+    line    : "apikey = \"{{ mackerel_apikey }}\""
+- name   : mackerel-agent起動
+  tags   : mackerel
+  service:
+    name : mackerel-agent
+    state: restarted
+
+- name      : 必須yum更新
   tags      : yum
+  sudo      : yes
   yum       : name="{{ item }}" state=installed
   with_items:
     - vim
     - gcc
     - ruby
     - python
+    - java
+    - go
     - git
     - sqlite
     - sqlite-devel
     - zlib-devel
     - openssl-devel
 
-# こっからsudoするしないで分ける
+- name    : A.ホスト名を取得(鍵のタイトルに使う)
+  tags    : github
+  command : hostname
+  register: myhost
+- name    : B.公開鍵情報を取得
+  tags    : github
+  command : cat ~/.ssh/id_rsa.pub
+  register: ssh_pubkey
+- name : title:A, key:B として公開鍵をGitHubに登録
+  tags : github
+  shell: curl -u "{{ github_account }}":"{{ github_password }}" \
+              -d '{"title":"{{myhost.stdout}}", "key":"{{ssh_pubkey.stdout}}"}' \
+         https://api.github.com/user/keys
 
-# GitHubに公開鍵を登録
-# TODO 既にGitHubに公開鍵があるかチェック入れる
-- name      : A.ホスト名を取得(鍵のタイトルに使う)
-  tags      : github
-  command   : hostname
-  sudo      : no
-  register  : myhost
-- name      : B.公開鍵情報を取得
-  tags      : github
-  sudo      : no
-  command   : cat ~/.ssh/id_rsa.pub
-  register  : ssh_pubkey
-- name      : title:A, key:B として公開鍵をGitHubに登録
-  tags      : github
-  sudo      : no
-  shell     : curl -u "{{ github_account }}":"{{ github_password }}" \
-                   -d '{"title":"{{myhost.stdout}}", "key":"{{ssh_pubkey.stdout}}"}' \
-              https://api.github.com/user/keys
-
-# 必要なリポジトリをクローン
-- name      : GitHubからクローン
+- name      : GitHubから必要リポジトリクローン
   tags      : myrepository
-  sudo      : no
-  git:
-    repo: "{{ item.repo }}"
-    dest: "{{ item.dest }}"
+  git       :
+    repo          : "{{ item.repo }}"
+    dest          : "{{ item.dest }}"
+    accept_hostkey: yes
   with_items:
     - repo: git@github.com:{{ github_account }}/{{ github_account }}.github.io.git
-      dest: ./{{ github_account }}.github.io
+      dest: ./github/{{ github_account }}.github.io
     - repo: git@github.com:{{ github_account }}/life
-      dest: ./life
+      dest: ./github/life
+    - repo: git@github.com:{{ github_account }}/be-side
+      dest: ./github/be-side
     - repo: git@github.com:{{ github_account }}/dotfiles
       dest: ./github/dotfiles
+    - repo: git@github.com:{{ github_account }}/nicony
+      dest: ./github/nicony
+    - repo: https://github.com/gmarik/vundle.git
+      dest: ~/.vim/vundle.git 
 
-# TODO Bitbucketにも鍵登録する
+- name : dotfileコピー
+  tags : setup
+  shell: sh ./github/dotfiles/replace.sh -n
+- name         : bash更新
+  tags         : setup
+  shell        : source ~/.bashrc
+  ignore_errors: yes
+
+- name: niconyインストール
+  tags: nicony
+  file:
+    path : ~/gopath
+    state: directory
+- name : nicony go get
+  tags : nicony
+  shell: go get github.com/{{ github_account}}/nicony
+- name : niconyインストール
+  tags : nicony
+  shell: go install github.com/{{ github_account}}/nicony
