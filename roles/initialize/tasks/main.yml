@@ -22,8 +22,29 @@
     line    : "apikey = \"{{ mackerel_apikey }}\""
 - name   : mackerel-agent起動
   tags   : mackerel
+  sudo   : yes
   service:
     name : mackerel-agent
+    state: restarted
+
+- name      : Munin yumインストール
+  tags      : munin
+  sudo      : yes
+  yum       : name="{{ item }}" state=installed
+  with_items:
+    - munin
+    - httpd
+- name   : httpd起動
+  tags   : munin
+  sudo   : yes
+  service:
+    name : httpd
+    state: restarted
+- name   : munin起動
+  tags   : munin
+  sudo   : yes
+  service:
+    name : munin-node
     state: restarted
 
 - name      : 必須yum更新
